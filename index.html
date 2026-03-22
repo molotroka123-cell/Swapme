@@ -1,0 +1,1473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#050816">
+    <title>SWAPME – Instant Crypto Exchange</title>
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* ─── LIGHT THEME ─── */
+            --bg: #ffffff;
+            --bg-surface: #f8fafc;
+            --bg-elevated: #f1f5f9;
+            --text: #0f172a;
+            --text2: #475569;
+            --text3: #64748b;
+            --border: #e2e8f0;
+            --primary: #0284c7;
+            --primary-rgb: 2, 132, 199;
+            --accent: #16a34a;
+            --danger: #dc2626;
+            --warning: #d97706;
+            --shadow: rgba(0,0,0,0.08);
+            --shadow-card: 0 2px 8px rgba(0,0,0,0.08);
+            --shadow-chart: 0 4px 12px rgba(0,0,0,0.06);
+        }
+
+        html[data-theme="dark"] {
+            /* ─── DARK THEME ─── */
+            --bg: #050816;
+            --bg-surface: #0b1020;
+            --bg-elevated: #111627;
+            --text: #f9fafb;
+            --text2: #9ca3af;
+            --text3: #6b7280;
+            --border: #1f2933;
+            --primary: #ff7a00;
+            --primary-rgb: 255, 122, 0;
+            --accent: #22c55e;
+            --danger: #ef4444;
+            --warning: #fbbf24;
+            --shadow: rgba(0,0,0,0.35);
+            --shadow-card: 0 4px 16px rgba(0,0,0,0.35);
+            --shadow-chart: 0 8px 24px rgba(0,0,0,0.25);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: var(--bg);
+        }
+
+        /* ─── HEADER ─── */
+        .header {
+            padding: 12px 16px;
+            background-color: var(--bg-surface);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-icon {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 14px;
+        }
+
+        .brand-text {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--primary);
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .theme-toggle {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 6px 10px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s, border-color 0.2s;
+            color: var(--text);
+        }
+
+        .theme-toggle:hover {
+            background-color: var(--bg-elevated);
+            border-color: var(--primary);
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            background-color: var(--accent);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* ─── SCREENS ─── */
+        .screens {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            display: flex;
+            position: relative;
+        }
+
+        .screen {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            padding: 16px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .screen.active {
+            position: relative;
+            opacity: 1;
+            pointer-events: auto;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ─── TYPOGRAPHY ─── */
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text2);
+        }
+
+        .title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: var(--text2);
+            margin-bottom: 16px;
+        }
+
+        /* ─── CARD ─── */
+        .card {
+            background-color: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: var(--shadow-card);
+            transition: border-color 0.2s;
+        }
+
+        .card:hover {
+            border-color: var(--primary);
+        }
+
+        /* ─── CHART ─── */
+        #priceChart {
+            width: 100%;
+            height: 240px;
+            border-radius: 12px;
+            overflow: hidden;
+            background-color: var(--bg-surface);
+        }
+
+        .chart-controls {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+            justify-content: flex-end;
+        }
+
+        .chart-btn {
+            padding: 6px 12px;
+            border: 1px solid var(--border);
+            background-color: var(--bg-elevated);
+            color: var(--text2);
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .chart-btn.active {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .chart-btn:hover {
+            border-color: var(--primary);
+        }
+
+        /* ─── FORM ─── */
+        .form-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .form-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text2);
+            margin-bottom: 6px;
+        }
+
+        .form-input {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 16px;
+            color: var(--text);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.15);
+        }
+
+        .select {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 16px;
+            color: var(--text);
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* ─── BUTTONS ─── */
+        .btn {
+            padding: 14px 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-elevated);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary);
+        }
+
+        .btn-icon {
+            padding: 8px;
+            width: auto;
+            background: transparent;
+            color: var(--text2);
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .btn-icon:hover {
+            color: var(--primary);
+        }
+
+        /* ─── BADGES ─── */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-pending {
+            background-color: rgba(var(--primary-rgb), 0.15);
+            color: var(--primary);
+        }
+
+        .badge-processing {
+            background-color: rgba(59, 130, 246, 0.15);
+            color: #3b82f6;
+        }
+
+        .badge-completed {
+            background-color: rgba(34, 197, 94, 0.15);
+            color: var(--accent);
+        }
+
+        .badge-cancelled {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+        }
+
+        /* ─── STATS ─── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .stat-card {
+            background-color: var(--bg-surface);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text2);
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        /* ─── TOAST ─── */
+        .toast {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--bg-elevated);
+            color: var(--text);
+            padding: 12px 16px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            font-size: 13px;
+            box-shadow: var(--shadow-card);
+            animation: slideUp 0.3s ease;
+            max-width: 90%;
+            text-align: center;
+            z-index: 9999;
+        }
+
+        .toast.error {
+            border-color: var(--danger);
+            background-color: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+        }
+
+        .toast.success {
+            border-color: var(--accent);
+            background-color: rgba(34, 197, 94, 0.15);
+            color: var(--accent);
+        }
+
+        @keyframes slideUp {
+            from { transform: translateX(-50%) translateY(20px); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+
+        /* ─── TABS / NAV ─── */
+        .nav {
+            display: flex;
+            gap: 0;
+            background-color: var(--bg-surface);
+            border-top: 1px solid var(--border);
+            padding: 0;
+            flex-shrink: 0;
+        }
+
+        .nav-item {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 12px;
+            color: var(--text2);
+            transition: color 0.2s, background-color 0.2s;
+            border-radius: 0;
+            position: relative;
+            font-weight: 600;
+        }
+
+        .nav-item:hover {
+            background-color: var(--bg-elevated);
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+        }
+
+        .nav-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background-color: var(--primary);
+        }
+
+        .nav-dot {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 8px;
+            height: 8px;
+            background-color: var(--danger);
+            border-radius: 50%;
+            display: none;
+        }
+
+        .nav-dot.show {
+            display: block;
+        }
+
+        /* ─── TIMER ─── */
+        .timer {
+            font-size: 28px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: var(--text);
+            font-family: 'Monaco', 'Courier New', monospace;
+        }
+
+        .timer.critical {
+            color: var(--danger);
+        }
+
+        /* ─── QR CODE ─── */
+        .qr-wrapper {
+            background-color: var(--bg-surface);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 12px 0;
+        }
+
+        .qr-wrapper canvas {
+            width: 150px !important;
+            height: 150px !important;
+        }
+
+        /* ─── MODAL ─── */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: var(--bg);
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-card);
+        }
+
+        /* ─── SWAP CIRCLE ─── */
+        .swap-circle {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin: 12px auto;
+            box-shadow: var(--shadow-card);
+        }
+
+        .swap-circle:hover {
+            transform: scale(1.1) rotate(180deg);
+        }
+
+        /* ─── SCROLLBAR ─── */
+        .screens::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .screens::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .screens::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        .screens::-webkit-scrollbar-thumb:hover {
+            background: var(--text2);
+        }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 360px) {
+            .container {
+                max-width: 100%;
+            }
+            .form-row {
+                flex-direction: column;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <div class="header-left">
+                <div class="logo-icon">◆</div>
+                <div class="brand-text">SWAPME</div>
+            </div>
+            <div class="header-controls">
+                <div class="status-indicator"></div>
+                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+                    <span id="themeIcon">🌙</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- SCREENS -->
+        <div class="screens">
+            <!-- EXCHANGE SCREEN -->
+            <div id="screenExchange" class="screen active">
+                <div class="title">Instant Swap</div>
+                <div class="subtitle">Real-time rates, secure exchanges</div>
+
+                <!-- CHART -->
+                <div class="card">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                        <div>
+                            <div class="section-title">Live Price Chart</div>
+                            <div style="font-size:12px;color:var(--text2);">
+                                <span id="chartPairLabel">BTC / USD</span>
+                            </div>
+                        </div>
+                        <div class="chart-controls">
+                            <button class="chart-btn active" data-chart-symbol="btc" onclick="changeChartSymbol('btc', this)">BTC</button>
+                            <button class="chart-btn" data-chart-symbol="eth" onclick="changeChartSymbol('eth', this)">ETH</button>
+                            <button class="chart-btn" data-chart-symbol="sol" onclick="changeChartSymbol('sol', this)">SOL</button>
+                        </div>
+                    </div>
+                    <div id="priceChart"></div>
+                </div>
+
+                <!-- FORM -->
+                <div class="card">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">You send</label>
+                            <input id="sendAmt" class="form-input" type="number" placeholder="0.00" step="0.00000001" oninput="recalc()">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Currency</label>
+                            <select id="sendCur" class="select" onchange="recalc()">
+                                <option>USDT</option>
+                                <option>BTC</option>
+                                <option>ETH</option>
+                                <option>SOL</option>
+                                <option>EUR</option>
+                                <option>CZK</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="swap-circle" onclick="swapCurrencies()">⇅</div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">You receive</label>
+                            <input id="recvAmt" class="form-input" type="text" readonly placeholder="0.00">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Currency</label>
+                            <select id="recvCur" class="select" onchange="recalc()">
+                                <option>CZK</option>
+                                <option>USDT</option>
+                                <option>BTC</option>
+                                <option>ETH</option>
+                                <option>SOL</option>
+                                <option>EUR</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;font-size:12px;">
+                        <div style="background-color:var(--bg-surface);padding:10px;border-radius:10px;">
+                            <div style="color:var(--text2);margin-bottom:4px;">Rate</div>
+                            <div id="rateDisplay" style="color:var(--text);font-weight:600;">–</div>
+                        </div>
+                        <div style="background-color:var(--bg-surface);padding:10px;border-radius:10px;">
+                            <div style="color:var(--text2);margin-bottom:4px;">Commission (1.5%)</div>
+                            <div id="commDisplay" style="color:var(--text);font-weight:600;">–</div>
+                        </div>
+                    </div>
+
+                    <button id="exchangeBtn" class="btn btn-primary" style="margin-top:16px;" onclick="startExchange()" disabled>Exchange Now</button>
+                </div>
+
+                <div style="font-size:11px;color:var(--text2);text-align:center;">
+                    Best rates guaranteed with 1.5% spread
+                </div>
+            </div>
+
+            <!-- ACTIVE TX SCREEN -->
+            <div id="screenTx" class="screen">
+                <div class="title">Active Exchange</div>
+                <div class="subtitle" id="txStatusLabel">Awaiting payment</div>
+
+                <div id="txContent"></div>
+            </div>
+
+            <!-- HISTORY SCREEN -->
+            <div id="screenHistory" class="screen">
+                <div class="title">History</div>
+                <div class="subtitle">All your swaps</div>
+
+                <div style="display:flex;gap:6px;margin-bottom:12px;">
+                    <button class="chart-btn active" onclick="filterHistory('all', this)">All</button>
+                    <button class="chart-btn" onclick="filterHistory('completed', this)">Done</button>
+                    <button class="chart-btn" onclick="filterHistory('pending', this)">Pending</button>
+                </div>
+
+                <div id="historyList"></div>
+            </div>
+
+            <!-- PROFILE SCREEN -->
+            <div id="screenProfile" class="screen">
+                <div class="title">Profile</div>
+                <div class="subtitle">Manage settings & wallets</div>
+
+                <!-- STATS -->
+                <div class="card">
+                    <div class="section-title" style="margin-bottom:12px;">Statistics</div>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">Total Swaps</div>
+                            <div class="stat-value" id="statCount">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Volume (USD)</div>
+                            <div class="stat-value" id="statVol">$0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NOTIFICATIONS -->
+                <div class="card">
+                    <div class="section-title" style="margin-bottom:12px;">Notifications</div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                        <label style="font-size:14px;">📱 Telegram Alerts</label>
+                        <input type="checkbox" id="tgToggle" onchange="toggleTelegram()" style="width:20px;height:20px;cursor:pointer;">
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                        <label style="font-size:14px;">📧 Email Alerts</label>
+                        <input type="checkbox" id="emailToggle" style="width:20px;height:20px;cursor:pointer;">
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <label style="font-size:14px;">🔔 Push Notifications</label>
+                        <input type="checkbox" id="pushToggle" style="width:20px;height:20px;cursor:pointer;">
+                    </div>
+                </div>
+
+                <!-- WALLETS -->
+                <div class="card">
+                    <div class="section-title" style="margin-bottom:12px;">Saved Wallets</div>
+                    <div class="form-row">
+                        <input id="walletLabel" class="form-input" placeholder="Label (e.g., Main BTC)" style="flex:1;">
+                        <input id="walletAddr" class="form-input" placeholder="Address" style="flex:1;">
+                    </div>
+                    <button class="btn btn-secondary" onclick="addWallet()">+ Add Wallet</button>
+                    <div id="walletList" style="margin-top:12px;"></div>
+                </div>
+
+                <!-- REFERRAL -->
+                <div class="card">
+                    <div class="section-title" style="margin-bottom:12px;">Referral Code</div>
+                    <div style="display:flex;gap:6px;">
+                        <input id="refCode" class="form-input" value="SWP-USER-AB12CD" readonly style="flex:1;">
+                        <button class="btn-icon" onclick="copyRef()" title="Copy referral code">📋</button>
+                    </div>
+                    <div style="font-size:11px;color:var(--text2);margin-top:8px;">
+                        Share your code & earn 5% commission on referral swaps
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NAV -->
+        <div class="nav">
+            <div id="nav0" class="nav-item active" onclick="goTo('exchange', 0)">
+                💱 Exchange
+            </div>
+            <div id="nav1" class="nav-item" onclick="goTo('tx', 1)">
+                ⏳ Active
+                <div id="txDot" class="nav-dot"></div>
+            </div>
+            <div id="nav2" class="nav-item" onclick="goTo('history', 2)">
+                📊 History
+                <div id="histDot" class="nav-dot"></div>
+            </div>
+            <div id="nav3" class="nav-item" onclick="goTo('profile', 3)">
+                👤 Profile
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div id="toastBox"></div>
+
+    <script>
+        // ═══════════════════════════════════════════════════════════════
+        // STATE & CONFIG
+        // ═══════════════════════════════════════════════════════════════
+
+        const STATE = {
+            prices: {},
+            rates: {},
+            activeTx: null,
+            txs: [],
+            stats: { count: 0, volUsd: 0, savedUsd: 0 },
+            settings: { telegram: false, email: false, push: false },
+            wallets: [],
+            historyFilter: 'all',
+            completionTimeout: null,
+            autoRefreshInterval: null
+        };
+
+        const CURRENCIES = ['BTC', 'ETH', 'USDT', 'SOL', 'EUR', 'CZK'];
+        const SPREAD = 0.015; // 1.5%
+        const COINGECKO_URL = 'https://api.coingecko.com:443/api/v3/simple/price?ids=bitcoin,ethereum,tether,solana&vs_currencies=usd,eur&include_24hr_change=true';
+
+        const chartState = {
+            symbol: 'btc',
+            chart: null,
+            series: null,
+            data: [],
+            ws: null
+        };
+
+        // Load theme preference
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon();
+
+        // Load persisted data
+        loadPersistedData();
+
+        // ═══════════════════════════════════════════════════════════════
+        // THEME SYSTEM
+        // ═══════════════════════════════════════════════════════════════
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const current = html.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            updateThemeIcon();
+            showToast('✓ Theme updated', 'success');
+        }
+
+        function updateThemeIcon() {
+            const theme = document.documentElement.getAttribute('data-theme');
+            document.getElementById('themeIcon').textContent = theme === 'dark' ? '☀️' : '🌙';
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // PERSISTENCE
+        // ═══════════════════════════════════════════════════════════════
+
+        function savePersistedData() {
+            const data = {
+                txs: STATE.txs,
+                stats: STATE.stats,
+                settings: STATE.settings,
+                wallets: STATE.wallets
+            };
+            localStorage.setItem('swapme_data', JSON.stringify(data));
+        }
+
+        function loadPersistedData() {
+            const saved = localStorage.getItem('swapme_data');
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    STATE.txs = data.txs || [];
+                    STATE.stats = data.stats || { count: 0, volUsd: 0, savedUsd: 0 };
+                    STATE.settings = data.settings || { telegram: false, email: false, push: false };
+                    STATE.wallets = data.wallets || [];
+                    syncSettingsUI();
+                    updateProfileUI();
+                } catch (e) {
+                    console.error('Failed to load persisted data:', e);
+                }
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // PRICES & RATES
+        // ═══════════════════════════════════════════════════════════════
+
+        async function loadPrices() {
+            try {
+                const res = await fetch(COINGECKO_URL, { signal: AbortSignal.timeout(5000) });
+                if (!res.ok) throw new Error('API error: ' + res.status);
+                const data = await res.json();
+
+                STATE.prices = {
+                    BTC: data.bitcoin.usd,
+                    ETH: data.ethereum.usd,
+                    USDT: data.tether.usd || 1,
+                    SOL: data.solana.usd,
+                    EUR: data.eur?.usd || 1.08,
+                    CZK: data.eur?.usd ? 1 / (data.eur.usd / 24) : 0.042
+                };
+
+                recalc();
+                seedChartFromCurrentPrices();
+            } catch (e) {
+                console.warn('Price load error (using fallback):', e.message);
+                if (!Object.keys(STATE.prices).length) {
+                    STATE.prices = {
+                        BTC: 95000,
+                        ETH: 3500,
+                        USDT: 1,
+                        SOL: 180,
+                        EUR: 1.08,
+                        CZK: 0.042
+                    };
+                }
+            }
+        }
+
+        function getRate(from, to) {
+            const fromPrice = STATE.prices[from] || 1;
+            const toPrice = STATE.prices[to] || 1;
+            return fromPrice / toPrice;
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // CHART (TradingView Lightweight Charts)
+        // ═══════════════════════════════════════════════════════════════
+
+        function initChart() {
+            const container = document.getElementById('priceChart');
+            if (!container || chartState.chart) return;
+
+            try {
+                chartState.chart = LightweightCharts.createChart(container, {
+                    layout: {
+                        background: { color: 'transparent' },
+                        textColor: 'var(--text2)'
+                    },
+                    grid: {
+                        vertLines: { color: 'var(--border)' },
+                        horzLines: { color: 'var(--border)' }
+                    },
+                    rightPriceScale: { borderColor: 'var(--border)' },
+                    timeScale: { borderColor: 'var(--border)' },
+                    width: container.clientWidth,
+                    height: 240
+                });
+
+                chartState.series = chartState.chart.addAreaSeries({
+                    lineColor: 'var(--primary)',
+                    topColor: 'rgba(var(--primary-rgb), 0.35)',
+                    bottomColor: 'rgba(var(--primary-rgb), 0.03)',
+                    lineWidth: 3
+                });
+
+                window.addEventListener('resize', () => {
+                    const w = container.clientWidth;
+                    if (w > 0 && chartState.chart) {
+                        chartState.chart.applyOptions({ width: w });
+                    }
+                });
+            } catch (e) {
+                console.warn('Chart init failed:', e);
+            }
+        }
+
+        function seedChartFromCurrentPrices() {
+            const symbol = chartState.symbol;
+            const price = STATE.prices?.[symbol.toUpperCase()];
+            if (!price || !chartState.series) return;
+
+            const time = Math.floor(Date.now() / 1000);
+            if (!chartState.data.length) {
+                chartState.data = Array.from({ length: 30 }, (_, i) => ({
+                    time: time - (29 - i) * 5,
+                    value: price
+                }));
+            } else {
+                chartState.data.push({ time, value: price });
+                if (chartState.data.length > 120) chartState.data.shift();
+            }
+            chartState.series.setData(chartState.data);
+        }
+
+        function updateChartPoint(symbol, price) {
+            if (chartState.symbol !== symbol || !price || !chartState.series) return;
+            const time = Math.floor(Date.now() / 1000);
+            const last = chartState.data[chartState.data.length - 1];
+            if (last && last.time === time) {
+                last.value = price;
+                chartState.series.update({ time, value: price });
+            } else {
+                chartState.data.push({ time, value: price });
+                if (chartState.data.length > 240) chartState.data.shift();
+                chartState.series.update({ time, value: price });
+            }
+        }
+
+        function connectRealtimeChart() {
+            if (chartState.ws) {
+                chartState.ws.close();
+                chartState.ws = null;
+            }
+            const map = { btc: 'btcusdt', eth: 'ethusdt', sol: 'solusdt' };
+            const stream = map[chartState.symbol];
+            if (!stream) return;
+            try {
+                chartState.ws = new WebSocket(`wss://stream.binance.com:9443/ws/${stream}@trade`);
+                chartState.ws.onmessage = (ev) => {
+                    const msg = JSON.parse(ev.data);
+                    const price = parseFloat(msg.p);
+                    if (!price) return;
+                    updateChartPoint(chartState.symbol, price);
+                };
+                chartState.ws.onerror = () => { if (chartState.ws) chartState.ws.close(); };
+                chartState.ws.onclose = () => { chartState.ws = null; };
+            } catch (e) {
+                console.warn('WebSocket connection failed:', e);
+            }
+        }
+
+        function changeChartSymbol(symbol, btn) {
+            chartState.symbol = symbol;
+            chartState.data = [];
+            document.getElementById('chartPairLabel').textContent = symbol.toUpperCase() + ' / USD';
+            document.querySelectorAll('[data-chart-symbol]').forEach(el => el.classList.remove('active'));
+            btn.classList.add('active');
+            seedChartFromCurrentPrices();
+            connectRealtimeChart();
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // EXCHANGE LOGIC
+        // ═══════════════════════════════════════════════════════════════
+
+        function recalc() {
+            const sendAmt = parseFloat(document.getElementById('sendAmt').value) || 0;
+            const sendCur = document.getElementById('sendCur').value;
+            const recvCur = document.getElementById('recvCur').value;
+
+            if (sendCur === recvCur) {
+                document.getElementById('recvAmt').value = '';
+                document.getElementById('rateDisplay').textContent = '–';
+                document.getElementById('commDisplay').textContent = '–';
+                document.getElementById('exchangeBtn').disabled = true;
+                return;
+            }
+
+            const rate = getRate(sendCur, recvCur);
+            const grossRecv = sendAmt * rate;
+            const comm = grossRecv * SPREAD;
+            const netRecv = grossRecv - comm;
+
+            document.getElementById('recvAmt').value = netRecv.toFixed(8);
+            document.getElementById('rateDisplay').textContent = `1 ${sendCur} = ${rate.toFixed(6)} ${recvCur}`;
+            document.getElementById('commDisplay').textContent = `${comm.toFixed(8)} ${recvCur}`;
+            document.getElementById('exchangeBtn').disabled = sendAmt <= 0;
+        }
+
+        function swapCurrencies() {
+            const tmp = document.getElementById('sendCur').value;
+            document.getElementById('sendCur').value = document.getElementById('recvCur').value;
+            document.getElementById('recvCur').value = tmp;
+            recalc();
+        }
+
+        function startExchange() {
+            const sendAmt = parseFloat(document.getElementById('sendAmt').value);
+            const sendCur = document.getElementById('sendCur').value;
+            const recvCur = document.getElementById('recvCur').value;
+            const recvAmt = parseFloat(document.getElementById('recvAmt').value);
+
+            if (sendAmt <= 0 || !sendCur || !recvCur || recvAmt <= 0) {
+                showToast('Invalid input', 'error');
+                return;
+            }
+
+            if (sendCur === recvCur) {
+                showToast('Select different currencies', 'error');
+                return;
+            }
+
+            const rate = getRate(sendCur, recvCur);
+            const amtUsd = sendAmt * (STATE.prices[sendCur] || 1);
+            const tx = {
+                id: 'tx_' + Date.now(),
+                time: new Date().toLocaleTimeString(),
+                from: sendCur,
+                to: recvCur,
+                amtIn: sendAmt,
+                amtOut: recvAmt,
+                rate,
+                amtUsd,
+                status: 'pending'
+            };
+
+            STATE.activeTx = tx;
+            STATE.txs.unshift(tx);
+            document.getElementById('txDot').classList.add('show');
+            savePersistedData();
+            goTo('tx', 1);
+            renderTx();
+            showToast('✓ Swap started', 'success');
+
+            if (STATE.completionTimeout) clearTimeout(STATE.completionTimeout);
+            STATE.completionTimeout = setTimeout(() => {
+                if (STATE.activeTx && STATE.activeTx.status === 'pending') {
+                    STATE.activeTx.status = 'processing';
+                    if (STATE.txs[0]) STATE.txs[0].status = 'processing';
+                    renderTx();
+                }
+            }, 60000);
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // TRANSACTION UI
+        // ═══════════════════════════════════════════════════════════════
+
+        function renderTx() {
+            const tx = STATE.activeTx;
+            if (!tx) {
+                document.getElementById('screenTx').innerHTML = '<div style="padding:40px;text-align:center;"><div style="font-size:14px;color:var(--text2);">No active transaction</div></div>';
+                return;
+            }
+
+            const statusColors = {
+                pending: 'badge-pending',
+                processing: 'badge-processing',
+                completed: 'badge-completed',
+                cancelled: 'badge-cancelled'
+            };
+
+            let progressHtml = '';
+            const statusList = ['pending', 'processing', 'completed'];
+            for (let i = 0; i < 3; i++) {
+                const s = statusList[i];
+                const done = statusList.indexOf(tx.status) >= i;
+                progressHtml += `<div style="flex:1;height:4px;background:${done ? 'var(--primary)' : 'var(--border)'};border-radius:2px;"></div>`;
+                if (i < 2) progressHtml += '<div style="flex:0.3;"></div>';
+            }
+
+            const content = `
+                <div class="card">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                        <div style="font-size:14px;font-weight:600;">${tx.from} → ${tx.to}</div>
+                        <span class="badge ${statusColors[tx.status]}">${tx.status}</span>
+                    </div>
+                    <div style="display:flex;gap:16px;margin-bottom:16px;">
+                        <div>
+                            <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">SEND</div>
+                            <div style="font-size:16px;font-weight:700;color:var(--text);">${tx.amtIn.toFixed(6)} ${tx.from}</div>
+                        </div>
+                        <div>
+                            <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">RECEIVE</div>
+                            <div style="font-size:16px;font-weight:700;color:var(--text);">${tx.amtOut.toFixed(6)} ${tx.to}</div>
+                        </div>
+                    </div>
+                    <div style="margin-bottom:16px;">
+                        <div style="display:flex;gap:4px;margin-bottom:8px;">${progressHtml}</div>
+                        <div style="font-size:11px;color:var(--text2);">Progress: ${tx.status}</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div style="font-size:14px;font-weight:600;margin-bottom:12px;">📮 Payment Address</div>
+                    <div style="background:var(--bg-surface);padding:12px;border-radius:10px;word-break:break-all;font-family:monospace;font-size:12px;color:var(--text2);margin-bottom:10px;">
+                        bc1qswapmex3u0p7k0m4l8t9a9n2p7v0c9n2
+                    </div>
+                    <button class="btn btn-secondary" onclick="copyAddr()" style="margin-bottom:10px;">📋 Copy Address</button>
+                    <div style="font-size:11px;color:var(--text2);">Send exactly <strong>${tx.amtIn}</strong> ${tx.from} to this address</div>
+                </div>
+
+                <div class="card">
+                    <div style="text-align:center;margin-bottom:12px;">
+                        <div style="font-size:11px;color:var(--text2);margin-bottom:6px;">PAYMENT WINDOW</div>
+                        <div id="txTimer" class="timer">15:00</div>
+                    </div>
+                    <div class="form-row" style="margin-top:12px;">
+                        <button class="btn btn-primary" onclick="paidTx()">✓ I Have Paid</button>
+                        <button class="btn btn-secondary" onclick="cancelTx()">✕ Cancel</button>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('screenTx').innerHTML = content;
+            startTxTimer();
+            renderTxStatus();
+        }
+
+        function startTxTimer() {
+            const display = document.getElementById('txTimer');
+            if (!display) return;
+
+            const update = () => {
+                const elapsed = Math.floor((Date.now() - (STATE.activeTx?.createdTime || Date.now())) / 1000);
+                const remain = Math.max(900 - elapsed, 0);
+                const min = Math.floor(remain / 60);
+                const sec = remain % 60;
+                display.textContent = `${min}:${sec.toString().padStart(2, '0')}`;
+                display.classList.toggle('critical', remain < 60);
+                if (remain > 0) {
+                    setTimeout(update, 1000);
+                } else if (STATE.activeTx && STATE.activeTx.status === 'pending') {
+                    STATE.activeTx.status = 'cancelled';
+                    renderTx();
+                }
+            };
+            update();
+        }
+
+        function renderTxStatus() {
+            const tx = STATE.activeTx;
+            if (!tx) return;
+
+            const statusLabel = {
+                pending: 'Awaiting payment',
+                processing: 'Processing on-chain',
+                completed: 'Completed ✓',
+                cancelled: 'Cancelled'
+            };
+
+            document.getElementById('txStatusLabel').textContent = statusLabel[tx.status];
+
+            if (tx.status === 'completed') {
+                STATE.stats.count++;
+                STATE.stats.volUsd += tx.amtUsd || 0;
+                STATE.stats.savedUsd += (tx.amtUsd || 0) * 0.015;
+                savePersistedData();
+                updateProfileUI();
+                document.getElementById('txDot').classList.remove('show');
+            }
+        }
+
+        function paidTx() {
+            if (!STATE.activeTx) {
+                showToast('No active transaction', 'error');
+                return;
+            }
+
+            if (STATE.activeTx.status !== 'pending') {
+                showToast('Cannot mark as paid in current status', 'error');
+                return;
+            }
+
+            STATE.activeTx.createdTime = Date.now() - 60000; // Start timer from 14:00
+            STATE.activeTx.status = 'processing';
+            STATE.txs[0].status = 'processing';
+            renderTx();
+            showToast('Payment received, processing…', 'success');
+
+            if (STATE.completionTimeout) clearTimeout(STATE.completionTimeout);
+            STATE.completionTimeout = setTimeout(() => {
+                if (STATE.activeTx && STATE.activeTx.status === 'processing') {
+                    STATE.activeTx.status = 'completed';
+                    STATE.txs[0].status = 'completed';
+                    renderTx();
+                    showToast('🎉 Swap completed!', 'success');
+                    savePersistedData();
+                }
+            }, 5000);
+        }
+
+        function cancelTx() {
+            if (!STATE.activeTx) return;
+            STATE.activeTx = null;
+            STATE.txs = STATE.txs.filter(t => t.id !== STATE.txs[0]?.id);
+            document.getElementById('sendAmt').value = '';
+            document.getElementById('recvCur').value = 'CZK';
+            document.getElementById('sendCur').value = 'USDT';
+            document.getElementById('txDot').classList.remove('show');
+            savePersistedData();
+            goTo('exchange', 0);
+            showToast('Swap cancelled', 'error');
+
+            if (STATE.completionTimeout) {
+                clearTimeout(STATE.completionTimeout);
+                STATE.completionTimeout = null;
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // HISTORY
+        // ═══════════════════════════════════════════════════════════════
+
+        function renderHistory() {
+            const filtered = STATE.historyFilter === 'all'
+                ? STATE.txs
+                : STATE.txs.filter(t => t.status === STATE.historyFilter);
+
+            const html = filtered.length === 0
+                ? '<div style="text-align:center;padding:40px;color:var(--text2);">No transactions</div>'
+                : filtered.map(t => {
+                    const statusColors = {
+                        pending: 'badge-pending',
+                        processing: 'badge-processing',
+                        completed: 'badge-completed',
+                        cancelled: 'badge-cancelled'
+                    };
+                    return `
+                        <div class="card">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                                <div style="font-weight:600;">${t.from} → ${t.to}</div>
+                                <span class="badge ${statusColors[t.status]}">${t.status}</span>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;font-size:13px;">
+                                <div><span style="color:var(--text2);">Send:</span> ${t.amtIn.toFixed(6)} ${t.from}</div>
+                                <div><span style="color:var(--text2);">Get:</span> ${t.amtOut.toFixed(6)} ${t.to}</div>
+                            </div>
+                            <div style="font-size:11px;color:var(--text2);margin-top:6px;">${t.time}</div>
+                        </div>
+                    `;
+                }).join('');
+
+            document.getElementById('historyList').innerHTML = html;
+        }
+
+        function filterHistory(filter, btn) {
+            STATE.historyFilter = filter;
+            document.querySelectorAll('[onclick*="filterHistory"]').forEach(el => el.classList.remove('active'));
+            btn.classList.add('active');
+            renderHistory();
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // PROFILE
+        // ═══════════════════════════════════════════════════════════════
+
+        function updateProfileUI() {
+            document.getElementById('statCount').textContent = STATE.stats.count;
+            document.getElementById('statVol').textContent = '$' + Math.round(STATE.stats.volUsd).toLocaleString();
+
+            syncSettingsUI();
+            renderWallets();
+        }
+
+        function syncSettingsUI() {
+            document.getElementById('tgToggle').checked = STATE.settings.telegram;
+            document.getElementById('emailToggle').checked = STATE.settings.email;
+            document.getElementById('pushToggle').checked = STATE.settings.push;
+        }
+
+        function toggleTelegram() {
+            STATE.settings.telegram = document.getElementById('tgToggle').checked;
+            savePersistedData();
+            showToast(STATE.settings.telegram ? '✓ Telegram connected' : '✓ Telegram disabled', 'success');
+        }
+
+        function addWallet() {
+            const label = document.getElementById('walletLabel').value.trim();
+            const addr = document.getElementById('walletAddr').value.trim();
+            if (!label || !addr) {
+                showToast('Fill all fields', 'error');
+                return;
+            }
+            STATE.wallets.push({ id: Date.now(), label, addr });
+            document.getElementById('walletLabel').value = '';
+            document.getElementById('walletAddr').value = '';
+            savePersistedData();
+            renderWallets();
+            showToast('✓ Wallet added', 'success');
+        }
+
+        function deleteWallet(id) {
+            STATE.wallets = STATE.wallets.filter(w => w.id !== id);
+            savePersistedData();
+            renderWallets();
+        }
+
+        function renderWallets() {
+            const html = STATE.wallets.length === 0
+                ? '<div style="font-size:12px;color:var(--text2);text-align:center;padding:16px;">No wallets yet</div>'
+                : STATE.wallets.map(w => `
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px solid var(--border);">
+                        <div>
+                            <div style="font-weight:600;">${w.label}</div>
+                            <div style="font-size:11px;color:var(--text2);word-break:break-all;">${w.addr}</div>
+                        </div>
+                        <button class="btn-icon" onclick="deleteWallet(${w.id})" style="color:var(--danger);">🗑️</button>
+                    </div>
+                `).join('');
+
+            document.getElementById('walletList').innerHTML = html;
+        }
+
+        function copyRef() {
+            const code = document.getElementById('refCode').value;
+            navigator.clipboard.writeText(code);
+            showToast('✓ Copied', 'success');
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // UI UTILS
+        // ═══════════════════════════════════════════════════════════════
+
+        function goTo(screen, idx) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('screen' + screen.charAt(0).toUpperCase() + screen.slice(1)).classList.add('active');
+            document.getElementById('nav' + idx).classList.add('active');
+
+            if (screen === 'history') renderHistory();
+            if (screen === 'profile') updateProfileUI();
+        }
+
+        function showToast(msg, type = 'info') {
+            const box = document.getElementById('toastBox');
+            const toast = document.createElement('div');
+            toast.className = 'toast ' + type;
+            toast.textContent = msg;
+            box.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        function copyAddr() {
+            const addr = 'bc1qswapmex3u0p7k0m4l8t9a9n2p7v0c9n2';
+            navigator.clipboard.writeText(addr);
+            showToast('✓ Address copied', 'success');
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // INIT
+        // ═══════════════════════════════════════════════════════════════
+
+        window.addEventListener('load', () => {
+            initChart();
+            loadPrices();
+            connectRealtimeChart();
+            setInterval(loadPrices, 5000);
+            renderHistory();
+            updateProfileUI();
+        });
+    </script>
+</body>
+</html>
