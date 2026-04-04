@@ -113,15 +113,85 @@ SwapMe — это OTC криптообменник в Праге. Основны
 - CSS переменные для цветовой схемы
 - Никаких внешних API на первом этапе — курсы захардкодить
 
-### Дизайн-стиль
-- **Dark theme** — основной и единственный
-- **Glassmorphism** на карточках калькулятора
-- **Subtle glow** на оранжевых элементах (box-shadow с #FF6600)
-- **Геометрический паттерн** на фоне (SVG, как на маскоте — треугольники)
-- **Плавные анимации** — fade-in при скролле, hover-эффекты на кнопках
-- **Gradient accents** — оранжевый в чёрный на ключевых элементах
-- Стиль вдохновлён: Uniswap, Binance P2P, но чище и премиальнее
-- Маскот используется как элемент доверия, не перегружать
+### Дизайн-стиль: "Космический обменник нового века"
+
+Общий вайб: **Calm Futurism + Chromatic Mash-Up** — сайт должен ощущаться как интерфейс из будущего. Не generic crypto template, а что-то на уровне awwwards.com. Каждый элемент должен "жить" и реагировать.
+
+#### Ключевые визуальные приёмы (Web Design Trends 2026):
+
+**1. Glassmorphism 2.0 (Основа UI)**
+- Все карточки и панели — полупрозрачные с backdrop-filter: blur(20px)
+- Тонкая светящаяся граница (border: 1px solid rgba(255,102,0,0.15))
+- Многослойная глубина — карточки перекрывают друг друга с разной прозрачностью
+- Калькулятор — главный showcase этого эффекта
+
+**2. Floating Elements + Parallax (Космический эффект)**
+- Фоновые элементы "плавают" с разной скоростью при скролле
+- Иконки криптовалют медленно вращаются и парят в hero-секции
+- Светящиеся орбы/сферы на фоне (оранжевый и белый, размытые, большие)
+- Частицы (маленькие точки-звёзды) дрейфуют по фону
+- CSS: transform: translateY() привязанный к scroll position
+
+**3. Glow & Neon Effects (Оранжевый как неон)**
+- Кнопки CTA: пульсирующий оранжевый glow (box-shadow: 0 0 30px rgba(255,102,0,0.4))
+- Текст заголовков: subtle text-shadow с оранжевым свечением
+- Hover на карточках: граница начинает светиться ярче
+- Иконки валют: цветной glow соответствующий цвету монеты (BTC=золотой, ETH=синий, USDT=зелёный)
+
+**4. Kinetic Typography (Живой текст)**
+- Заголовок hero: слова появляются по одному с fade+slide анимацией
+- Числа статистики: animated counter от 0 до значения при скролле в viewport
+- Hover на навигации: буквы слегка "расходятся" (letter-spacing transition)
+- Gradient text на ключевых словах (оранжевый → белый)
+
+**5. Scroll-Triggered Animations (Каждая секция оживает)**
+- Intersection Observer API для запуска анимаций при скролле
+- Элементы "выезжают" снизу/сбоку с blur→clear эффектом
+- Staggered reveal: карточки появляются одна за другой с задержкой 100ms
+- Прогресс-бар скролла в хедере (тонкая оранжевая линия)
+
+**6. Cursor Effects (Интерактивная магия)**
+- Кастомный курсор: маленький оранжевый круг который увеличивается при hover на интерактивных элементах
+- Gradient spotlight: легкое оранжевое свечение следует за курсором на hero-секции
+- Magnetic buttons: кнопки слегка "притягиваются" к курсору при приближении
+
+**7. Bento Grid Layout (Секция преимуществ)**
+- Карточки разного размера в стиле Apple/bento
+- Некоторые карточки больше (2x), создавая ритм
+- Каждая карточка с уникальной анимацией внутри
+- Общая сетка реагирует на resize
+
+**8. Micro-interactions повсюду**
+- Кнопка "Обменять": ripple effect при клике
+- Переключатель валют: smooth slide с physics-based easing
+- FAQ аккордеон: плавное раскрытие с bounce эффектом
+- Переключатель языка: flip animation
+- Иконки соцсетей: scale + rotate при hover
+
+**9. Фоновые эффекты (Космос)**
+- Основной фон: радиальный градиент от центра (#1A1A1A → #0D0D0D)
+- Наложение: SVG паттерн из треугольников (как на маскоте) с opacity 0.03-0.05
+- 2-3 размытых оранжевых/фиолетовых "туманности" (CSS radial-gradient) позиционированных абсолютно
+- Noise texture overlay (SVG filter или CSS) для тактильности
+- Линии grid: тонкие линии perspective grid уходящие в "горизонт" — как пол космической станции
+
+**10. Animated Gradient Borders**
+- Ключевые элементы (калькулятор, CTA) обрамлены анимированным градиентом
+- Градиент медленно вращается по периметру (conic-gradient + animation)
+- Создаёт эффект "живой" границы, как будто энергия течёт по контуру
+
+#### Референсы стиля:
+- Uniswap.org — чистый crypto UI
+- Linear.app — glassmorphism и анимации
+- Stripe.com — depth и scroll animations
+- Apple.com — bento grid, reveal effects
+- Cosmos Network — космический crypto вайб
+
+#### Чего НЕ делать:
+- Не использовать generic фиолетовый градиент на белом — это AI-slop
+- Не перегружать анимациями до потери производительности
+- Не делать "темплейтный" crypto сайт с stock графикой
+- Маскот используется точечно (hero + CTA), не превращать в детский сайт
 
 ### Мультиязычность
 - Объект `translations` с ключами `ru` и `en`
@@ -180,6 +250,78 @@ SwapMe — это OTC криптообменник в Праге. Основны
 Создай полноценный React-артифакт для сайта SwapMe — OTC криптообменника в Праге.
 Используй бренд-ассеты, цвета и структуру из этого документа.
 Начни с frontend-design скилла, затем создай JSX файл.
-Важно: dark theme, glassmorphism калькулятор, RU/EN переключатель, 
-маскот-лисёнок, все CTA → Telegram.
+
+КРИТИЧЕСКИ ВАЖНО — дизайн уровня awwwards.com:
+- Dark theme с космическим вайбом: floating orbs, particle background, perspective grid
+- Glassmorphism 2.0 на всех карточках с animated gradient borders
+- Kinetic typography: слова hero появляются по одному, gradient text
+- Scroll-triggered animations: каждая секция оживает при скролле (Intersection Observer)
+- Cursor spotlight: оранжевое свечение следует за мышкой в hero
+- Glow effects: пульсирующий неон на CTA кнопках, цветной glow на иконках валют
+- Bento grid для карточек преимуществ
+- Staggered reveal: элементы появляются каскадом
+- Animated counters в статистике
+- Noise texture overlay для тактильности
+- RU/EN переключатель, все CTA → Telegram
+- Маскот-лисёнок в hero и CTA секциях
+
+Сайт должен выглядеть как интерфейс космической станции,
+а не как типичный crypto template. Каждый пиксель — осознанное решение.
+```
+
+## CSS-сниппеты для агента
+
+### Animated gradient border
+```css
+.gradient-border {
+  position: relative;
+  border-radius: 16px;
+  padding: 1px;
+  background: conic-gradient(from var(--angle), #FF6600, #FF660020, #FF6600);
+  animation: rotate-gradient 4s linear infinite;
+}
+@keyframes rotate-gradient {
+  to { --angle: 360deg; }
+}
+@property --angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+```
+
+### Floating orbs background
+```css
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  animation: float 20s ease-in-out infinite;
+}
+.orb-orange { background: rgba(255,102,0,0.15); width: 400px; height: 400px; }
+.orb-white { background: rgba(255,255,255,0.05); width: 300px; height: 300px; }
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -50px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.9); }
+}
+```
+
+### Noise texture overlay
+```css
+.noise::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1;
+}
+```
+
+### Cursor spotlight (React)
+```jsx
+const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+// onMouseMove → setMousePos({ x: e.clientX, y: e.clientY })
+// <div style={{ background: `radial-gradient(600px at ${mousePos.x}px ${mousePos.y}px, rgba(255,102,0,0.06), transparent 80%)` }} />
 ```
